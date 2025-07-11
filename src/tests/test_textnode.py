@@ -1,5 +1,5 @@
 import unittest
-from src.textnode import TextNode, TextType
+from src.models.textnode import TextNode, TextType
 
 class TestTextNode(unittest.TestCase):
     def test_textnode_equality_same_properties(self):

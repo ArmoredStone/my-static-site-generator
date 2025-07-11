@@ -1,4 +1,4 @@
-from textnode import TextNode, TextType
+from models.textnode import TextNode, TextType
 
 def main():
     text_node = TextNode("1", TextType.TEXT)
