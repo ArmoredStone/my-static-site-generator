@@ -13,7 +13,7 @@ def main():
             basepath += "/"
 
     # Use docs directory for GitHub Pages
-    output_dir = "src/docs"
+    output_dir = "docs"
 
 
     if os.path.exists(output_dir):
