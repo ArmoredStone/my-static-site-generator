@@ -1,36 +1,33 @@
-import os
 import shutil
-import logging
+import os
+import sys
 
-logging.basicConfig(level=logging.INFO)
-
-def copy_static(src: str, dest: str):
-    """Recursively copy static assets from src to dest, wiping dest first."""
-    
-    # Clean destination
-    if os.path.exists(dest):
-        shutil.rmtree(dest)
-        logging.info(f"Deleted existing directory: {dest}")
-
-    os.makedirs(dest)
-    logging.info(f"Created directory: {dest}")
-
-    # Walk through the source directory
-    for item in os.listdir(src):
-        src_path = os.path.join(src, item)
-        dest_path = os.path.join(dest, item)
-
-        if os.path.isdir(src_path):
-            # Recursively copy subdirectory
-            copy_static(src_path, dest_path)
-        else:
-            # Copy file
-            shutil.copy(src_path, dest_path)
-            logging.info(f"Copied file: {src_path} -> {dest_path}")
-
+from src.functions.generate_pages_recursive import generate_pages_recursive 
 
 def main():
-    copy_static("static", "public")
+    basepath = "/"
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+        # Ensure basepath ends with a slash
+        if not basepath.endswith("/"):
+            basepath += "/"
+
+    # Use docs directory for GitHub Pages
+    output_dir = "src/docs"
+
+
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir)
+
+    # Delete everything inside public
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir)
+
+    shutil.copytree("src/static", output_dir, dirs_exist_ok=True)
+    generate_pages_recursive("src/content", "template.html", output_dir, basepath=basepath)
+
 
 
 if __name__ == "__main__":
