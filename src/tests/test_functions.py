@@ -4,6 +4,8 @@ from src.models.htmlnode import HTMLNode, LeafNode, ParentNode
 from src.models.textnode import TextNode, TextType
 from src.functions.text_node_to_html_node import text_node_to_html_node
 from src.functions.split_nodes_delimiter import split_nodes_delimiter
+from src.functions.split_nodes_link import split_nodes_link
+from src.functions.split_nodes_image import split_nodes_image
 
 class TestFunctions(unittest.TestCase):
     def test_text(self):
@@ -59,3 +61,64 @@ class TestFunctions(unittest.TestCase):
         node = TextNode("already bold", TextType.BOLD)
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
         assert new_nodes == [node]
+    
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links(self):
+        node = TextNode(
+            "Check this [Google](https://google.com) and [OpenAI](https://openai.com)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("Check this ", TextType.TEXT),
+                TextNode("Google", TextType.LINK, "https://google.com"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("OpenAI", TextType.LINK, "https://openai.com"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_and_text_only(self):
+        node = TextNode("This is a plain text.", TextType.TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([TextNode("This is a plain text.", TextType.TEXT)], new_nodes)
+
+    def test_split_images_and_non_text_node(self):
+        node1 = TextNode("This has ![an image](img.png)", TextType.TEXT)
+        node2 = TextNode("Already an image", TextType.IMAGE, "img.png")
+        new_nodes = split_nodes_image([node1, node2])
+        self.assertListEqual(
+            [
+                TextNode("This has ", TextType.TEXT),
+                TextNode("an image", TextType.IMAGE, "img.png"),
+                node2,
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_with_exclamation(self):
+        node = TextNode("An image ![notalink](img.png) and a [link](url.com)", TextType.TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("An image ![notalink](img.png) and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "url.com"),
+            ],
+            new_nodes,
+        )
